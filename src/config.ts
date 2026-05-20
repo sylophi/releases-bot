@@ -12,20 +12,29 @@ export type Config = {
 };
 
 const REPO_RE = /^[^/\s]+\/[^/\s]+$/;
+const DEFAULT_POLL_INTERVAL = 60;
+const MIN_POLL_INTERVAL = 30;
 
-function assertConfig(value: unknown): asserts value is Config {
+function normalizeConfig(value: unknown): Config {
   if (!value || typeof value !== "object") {
     throw new Error("config must be an object");
   }
   const cfg = value as Record<string, unknown>;
 
-  if (typeof cfg.poll_interval_seconds !== "number" || cfg.poll_interval_seconds < 30) {
-    throw new Error("poll_interval_seconds must be a number >= 30");
+  let interval = DEFAULT_POLL_INTERVAL;
+  if (cfg.poll_interval_seconds !== undefined) {
+    if (typeof cfg.poll_interval_seconds !== "number" || cfg.poll_interval_seconds < MIN_POLL_INTERVAL) {
+      throw new Error(`poll_interval_seconds must be a number >= ${MIN_POLL_INTERVAL}`);
+    }
+    interval = cfg.poll_interval_seconds;
   }
-  if (!Array.isArray(cfg.repos) || cfg.repos.length === 0) {
-    throw new Error("repos must be a non-empty array");
+
+  const reposRaw = cfg.repos ?? [];
+  if (!Array.isArray(reposRaw)) {
+    throw new Error("repos must be an array");
   }
-  for (const [i, entry] of cfg.repos.entries()) {
+  const repos: RepoConfig[] = [];
+  for (const [i, entry] of reposRaw.entries()) {
     if (!entry || typeof entry !== "object") {
       throw new Error(`repos[${i}] must be an object`);
     }
@@ -36,7 +45,10 @@ function assertConfig(value: unknown): asserts value is Config {
     if (typeof e.channel_id !== "string" || !/^\d+$/.test(e.channel_id)) {
       throw new Error(`repos[${i}].channel_id must be a Discord snowflake string`);
     }
+    repos.push({ repo: e.repo, channel_id: e.channel_id });
   }
+
+  return { poll_interval_seconds: interval, repos };
 }
 
 export async function loadConfig(path = "config.json"): Promise<Config> {
@@ -53,6 +65,5 @@ export async function loadConfig(path = "config.json"): Promise<Config> {
   } catch (err) {
     throw new Error(`config is not valid JSON: ${(err as Error).message}`);
   }
-  assertConfig(parsed);
-  return parsed;
+  return normalizeConfig(parsed);
 }
