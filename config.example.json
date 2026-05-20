@@ -1,0 +1,13 @@
+{
+  "poll_interval_seconds": 60,
+  "repos": [
+    {
+      "repo": "oven-sh/bun",
+      "channel_id": "1234567890123456789"
+    },
+    {
+      "repo": "discordjs/discord.js",
+      "channel_id": "1234567890123456789"
+    }
+  ]
+}
