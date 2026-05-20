@@ -15,13 +15,13 @@ const state = await StateStore.load();
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-client.once("ready", (c) => {
+client.once("clientReady", (c) => {
   console.log(`[discord] logged in as ${c.user.tag}`);
   console.log(`[bot] tracking ${config.repos.length} repo(s)`);
 });
 
 await client.login(token);
-await new Promise<void>((resolve) => client.once("ready", () => resolve()));
+await new Promise<void>((resolve) => client.once("clientReady", () => resolve()));
 
 let stopping = false;
 
