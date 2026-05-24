@@ -24,6 +24,7 @@ await client.login(token);
 await new Promise<void>((resolve) => client.once("clientReady", () => resolve()));
 
 let stopping = false;
+let ticking = false;
 
 async function pollRepo(entry: RepoConfig, cfg: Config): Promise<void> {
   void cfg;
@@ -108,8 +109,14 @@ async function pollRepo(entry: RepoConfig, cfg: Config): Promise<void> {
 }
 
 async function tick(): Promise<void> {
-  await Promise.all(config.repos.map((r) => pollRepo(r, config)));
-  await state.flush();
+  if (ticking) return;
+  ticking = true;
+  try {
+    await Promise.all(config.repos.map((r) => pollRepo(r, config)));
+    await state.flush();
+  } finally {
+    ticking = false;
+  }
 }
 
 console.log(`[bot] polling every ${config.poll_interval_seconds}s`);
