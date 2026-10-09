@@ -69,3 +69,14 @@ export async function fetchRepo(repo: string): Promise<Repo> {
   }
   return (await res.json()) as Repo;
 }
+
+export async function fetchRelease(repo: string, tag: string): Promise<Release> {
+  const res = await fetch(`${API}/repos/${repo}/releases/tags/${encodeURIComponent(tag)}`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`GitHub ${res.status} for ${repo}@${tag}: ${body.slice(0, 200)}`);
+  }
+  return (await res.json()) as Release;
+}

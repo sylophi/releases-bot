@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "init": "bun run scripts/init.ts",
+    "preview": "bun run scripts/preview.ts",
     "start": "bun run src/index.ts",
     "dev": "bun --watch run src/index.ts",
     "typecheck": "tsc --noEmit"
